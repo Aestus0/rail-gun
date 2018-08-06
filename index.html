@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>rail-gun</title>
+    <script src="javascript/jquery-3.3.1.min.js" type="application/javascript"></script>
+    <script src="javascript/rail-gun.js" type="application/javascript"></script>
+    <!--移动设备优先,为了确保正确的渲染和触摸缩放，需要在head之中添加viewport meta标签-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<div id="test" style="position: relative;"></div>
+<script>
+    $('#test').railGun({
+        menuList: [
+            {menuId: 1},
+            {menuId: 2, parentId: 1},
+            {menuId: 3, parentId: 2}
+        ],
+        trigMode:'mouseover'
+    });
+</script>
+</body>
+</html>
