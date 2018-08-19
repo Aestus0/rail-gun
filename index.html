@@ -9,15 +9,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-<div id="test" style="position: relative;"></div>
+<div id="test" style="position: relative;height: 10px;background-color: #000;"></div>
 <script>
     $('#test').railGun({
         menuList: [
-            {menuId: 1},
-            {menuId: 2, parentId: 1},
+            {
+                menuId: 1,
+                clickFunc: function (menuId) {
+                    alert(menuId)
+                }
+            },
+            {
+                menuId: 4,
+                clickFunc: function (menuId) {
+                    alert(menuId)
+                }
+            },
+            {
+                menuId: 2,
+                parentId: 1,
+                mouseFunc: function (menuId) {
+                    alert(menuId)
+                }
+            },
+            {
+                menuId: 5,
+                parentId: 4,
+                mouseFunc: function (menuId) {
+                    alert(menuId)
+                }
+            },
             {menuId: 3, parentId: 2}
         ],
-        trigMode:'mouseover'
+        trigMode: 'mouseover'
     });
 </script>
 </body>

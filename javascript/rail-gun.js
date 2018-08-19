@@ -38,11 +38,19 @@ RailGun.prototype = {
         height: '500px',
         background: '#373d41'
     },
+    menuItemCss: {
+        width: '100px',
+        display: 'inline-block'
+    },
     //渲染
     render: function () {
+        var opt = this;
         this._setOffset(this.offsetTop || this.options.top,
             this.offsetLeft || this.options.left);
         this.menuLevels = this.getMenuLevels(0);
+        this.$element.click(function (ev) {
+            opt._showChildMenu('undefined', 0);
+        });
         //todo 一级菜单渲染
         //按层级渲染
         for (var i = 0; i < this.menuLevels; i++) {
@@ -58,7 +66,7 @@ RailGun.prototype = {
             for (var i = 0; i < menuList.length; i++) {
                 if (!menuList[i].parentId) {
                     this['menu' + index].push(menuList[i].menuId);
-                    menuList.splice(i, 1);
+                    // menuList.splice(i, 1);
                 }
             }
             if (this['menu' + index].length > 0) {
@@ -73,7 +81,7 @@ RailGun.prototype = {
                     //判断是否是父菜单的子菜单，生成次层菜单数组
                     if ($.inArray(menuList[i].parentId, this['menu' + (index - 1)]) !== -1) {
                         this['menu' + index].push(menuList[i].menuId);
-                        menuList.splice(i, 1);
+                        // menuList.splice(i, 1);
                     }
                 }
             }
@@ -88,11 +96,14 @@ RailGun.prototype = {
     _renderMenuByIndex(index) {
         var opt = this;
         var menusCss = this._getRealOptions(this.menusCss, this.options['menusCss' + index]);
+        var menuItemCss = this._getRealOptions(this.menuItemCss, this.options.menuItemCss);
         var menu = $('<div></div>').css(menusCss)
-            .data('rg-menu-index', '' + index)
+            .attr('rg-menu-index', '' + index)
             .css({
                 position: 'absolute',
-                left: menusCss.width.substring(0, menusCss.width.length - 2) * index + 'px'
+                top: this.$element.height(),
+                left: menusCss.width.substring(0, menusCss.width.length - 2) * index + 'px',
+                display: 'none'
             });
         debugger;
         var menuList = this._sortMemuList(this._getMenuList(index));
@@ -101,15 +112,41 @@ RailGun.prototype = {
                 var idx = i;
                 var menuInfo = menuList[idx];
                 menu.append($('<span>' + (menuInfo.description || 'test') + '</span>')
-                    .data('rg-id', menuInfo.menuId)
-                    .data('rg-seq', '' + menuInfo.seqNumber)
-                    .data('rg-item-index', '' + index).click(function (ev) {
-                        alert(idx);
-                        menuInfo.clickFunc(menuInfo.menuId, menuInfo.description, menuInfo.seqNumber, menuInfo.parentId, ev);
+                    .css(menuItemCss)
+                    .attr('rg-id', menuInfo.menuId)
+                    .attr('rg-seq', '' + menuInfo.seqNumber)
+                    .attr('rg-item-index', '' + index)
+                    .attr('rg-item-parent', '' + menuInfo.parentId)
+                    .click(function (ev) {
+                        // alert(idx);
+
+                        menuInfo.clickFunc
+                        && menuInfo.clickFunc(menuInfo.menuId, menuInfo.description, menuInfo.seqNumber, menuInfo.parentId, ev);
+                    })
+                    .mouseover(function (ev) {
+                        menuInfo.mouseFunc
+                        && menuInfo.mouseFunc(menuInfo.menuId, menuInfo.description, menuInfo.seqNumber, menuInfo.parentId, ev);
+                    })
+                    .bind(opt.options.trigMode, function (ev) {
+                        for (var j = index + 1; j <= opt.menuLevels; j++) {
+                            $('div[rg-menu-index=' + j + ']').hide();
+                        }
+                        opt._showChildMenu(menuInfo.menuId, index + 1);
+
                     }))
             }();
         }
         return menu;
+    },
+    //展示某一父菜单下的子菜单
+    _showChildMenu: function (parentId, index) {
+        debugger
+        var $menuItems = $('span[rg-item-parent=' + parentId + ']');
+        if ($menuItems.length) {
+            $('div[rg-menu-index=' + index + ']').show();
+        }
+        $('span[rg-item-index=' + index + ']').hide();
+        $menuItems.show();
     },
     //根据层次获取数列的详细信息
     _getMenuList(index) {
@@ -149,9 +186,20 @@ RailGun.prototype = {
 };
 
 $.fn.railGun = function (options) {
+    // $(document).on('click.railGun', function (ev) {
+    //     debugger
+    //     $('div[rg-menu-index]').hide();
+    // });
     this.each(function () {
         var menu = new RailGun($(this), options);
         console.log(menu.menuLevels);
+        //点击菜单外隐藏菜单
+        var opt = this;
+        $(document).on('click.railGun', function (ev) {
+            if (!opt.contains(ev.target)) {
+                $('div[rg-menu-index]').hide();
+            }
+        });
     });
     return this;
 };
